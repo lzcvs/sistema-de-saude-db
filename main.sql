@@ -101,7 +101,7 @@ CREATE TABLE consulta_exame(
     FOREIGN KEY (id_exame) REFERENCES exame(id_exame) ON DELETE CASCADE
 );
 
--- Cria índices para melhor performance
+
 CREATE INDEX idx_paciente_pessoa ON paciente(id_pessoa);
 CREATE INDEX idx_profissional_pessoa ON profissional(id_pessoa);
 CREATE INDEX idx_agendamento_profissional ON agendamento(id_profissional);
