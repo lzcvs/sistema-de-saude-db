@@ -1,33 +1,79 @@
 from config import conecta, encerra_conexao
-import hashlib
-## create
-## read
-## update
-## delete
+
+
 def main():
     conexao = conecta()
-    cursor = conexao.cursos()
+    cursor = conexao.cursor()
 
-    ##update
+    
     def insert(id_pessoa, nome, endereco, cpf, senha, telefone):
-        cmd_insert = "INSERT INTO pessoa (id_pessoa, nome, endereco, cpf, senha, telefone) VALUES (%s, %s, %s, %s, %s);"
-        values = nome, endereco, cpf, senha, telefone
+        cmd_insert = "INSERT INTO pessoa (id_pessoa, nome, endereco, cpf, senha, telefone) VALUES (%s, %s, %s, %s, %s, %s);"
+        values = id_pessoa, nome, endereco, cpf, senha, telefone
         cursor.execute(cmd_insert, values)
         conexao.commit()
         print('Dados inseridos com sucesso')
 
     def seleciona():
-        cmd_select = "SELECT id_pessoa, nome, cpf, endereco, telefone FROM pessoa;"
+        cmd_select = "SELECT id_pessoa, nome, endereco, cpf, telefone, senha FROM pessoa;"
         cursor.execute(cmd_select)
         fetch =  cursor.fetchall()
         for i in fetch:
             print(i)
         return fetch
     
-    def hash_senha(senha):
-        return hashlib.sha256(senha.encode()).hexdigest()
+    def buscar_por_cpf():
+        cpf = input("Digite o CPF: ")
+        cursor.execute("SELECT * FROM pessoa WHERE CPF = %s", (cpf,))
+        pessoa = cursor.fetchone()
+
+        if pessoa:
+            print(f"Nome: {pessoa[1]}")
+            print(f"CPF: {pessoa[3]}")
+            print(f"Telefone: {pessoa[5]}")
+    def atualizar():
+        id_pessoa = input("Qual o seu id? ")
+        cursor.execute("SELECT * FROM pessoa WHERE id_pessoa = %s", (id_pessoa,))
+        pessoa = cursor.fetchone()
+
+        if not pessoa:
+            print("Pessoa não encontrada")
+            return
+
+        print(f"Dados atuais - Nome: ({pessoa[1]}), Endereco ({pessoa[2]}) Telefone: ({pessoa[5]})")
+
+        novo_endereco = input("Novo endereco (enter para manter): ")
+        nova_senha = input("Nova senha (enter para manter): ")
+        nova_senha2 = input("Repita a senha (enter para manter): ")
+        novo_telefone = input("Novo telefone (enter para manter): ")
+
+        campos = []
+        valores = []
+        if novo_endereco:
+            campos.append("endereco = %s")
+            valores.append(novo_endereco)
+        if nova_senha == nova_senha2:
+            campos.append("senha = %s")
+            valores.append(nova_senha)
+        else:
+            print("As senhas não batem")
+        if novo_telefone:
+            campos.append("telefone = %s")
+            valores.append(novo_telefone)
+
+        if not campos:
+            print("Nada para atualizar")
+            return
+        valores.append(id_pessoa)
+        cmd_update = f"UPDATE pessoa SET {', '.join(campos)} WHERE id_pessoa = %s;"
+        cursor.execute(cmd_update, tuple(valores))
+        conexao.commit()
+        print("Atualizado!")
+
+    def delete(id):
+        cmd_delete = f"DELETE FROM pessoa WHERE id_pessoa= '{id}'"
+        cursor.execute(cmd_delete)
+        conexao.commit()
+        print('Registro deletado com sucesso')
     
-    def atualiza():
-        return
-    def delete():
-        return
+if __name__ ==  "__main__":
+    main()

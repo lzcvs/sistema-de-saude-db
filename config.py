@@ -27,5 +27,4 @@ def conecta():
 def encerra_conexao(conexao):
     if conexao:
         conexao.close()
-
-    print('Conexao encerrada')
+        print('Conexao encerrada')
