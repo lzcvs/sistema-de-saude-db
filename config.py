@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from psycopg2 import Error
 
+
 load_dotenv()
 password = os.getenv('password')
 
@@ -22,7 +23,7 @@ def conecta():
 
 
     except Error as e:
-        print("ocorreu um erro ao se conectar")
+        print(f"ocorreu um erro ao se conectar: {e}")
 
 def encerra_conexao(conexao):
     if conexao:

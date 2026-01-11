@@ -16,7 +16,7 @@ def main():
             return True
 
 
-    def insert(id_pessoa, nome, endereco, cpf, senha, telefone):
+    def criar_pessoa(id_pessoa, nome, endereco, cpf, senha, telefone):
         cmd_insert = "INSERT INTO pessoa (id_pessoa, nome, endereco, cpf, senha, telefone) VALUES (%s, %s, %s, %s, %s, %s);"
         values = id_pessoa, nome, endereco, cpf, senha, telefone
         cursor.execute(cmd_insert, values)
@@ -24,11 +24,11 @@ def main():
         print('Dados inseridos com sucesso')
 
 
-    def criar_paciente(id_paciente, id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo):
+    def criar_paciente(id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo):
         try:
             if check(id_pessoa):
-                cmd_paciente = "INSERT INTO paciente (id_paciente, id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo) VALUES (%s, %s, %s, %s, %s, %s)"
-                values_paciente = (id_paciente, id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo)
+                cmd_paciente = "INSERT INTO paciente (id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo) VALUES (%s, %s, %s, %s, %s)"
+                values_paciente = (id_pessoa, tipo_sanguineo, ficha_medica, historico_doencas, sexo)
                 cursor.execute(cmd_paciente, values_paciente)
                 conexao.commit()
                 print('Paciente criado com sucesso')
@@ -40,11 +40,11 @@ def main():
             print(f"error ao criar paciente {e}")
             return False
     
-    def criar_profissional(id_profissional, id_pessoa, especialidade, numero_reg):
+    def criar_profissional(id_pessoa, especialidade, numero_reg):
         try:
             if check(id_pessoa):
-                cmd_profissional = "INSERT INTO profissional (id_profissional, id_pessoa, tipo_sanguineo, especialidade, numero_registro_medico) VALUES (%s, %s, %s, %s)"
-                values_profissional = (id_profissional, id_pessoa, especialidade, numero_reg)
+                cmd_profissional = "INSERT INTO profissional (id_pessoa, especialidade, numero_registro_medico) VALUES (%s, %s, %s)"
+                values_profissional = (id_pessoa, especialidade, numero_reg)
                 cursor.execute(cmd_profissional, values_profissional)
                 conexao.commit()
                 print("Profissional criado com sucesso")
@@ -57,21 +57,12 @@ def main():
             return False
             
     def seleciona():
-        cmd_select = "SELECT * FROM paciente, pessoa;"
+        cmd_select = "SELECT * FROM paciente, pessoa, profissional;"
         cursor.execute(cmd_select)
         fetch =  cursor.fetchall()
         for i in fetch:
             print(i)
         return fetch
-    
-    def buscar_por_cpf(cpf):
-        cursor.execute("SELECT * FROM pessoa WHERE CPF = %s", (cpf,))
-        pessoa = cursor.fetchone()
-
-        if pessoa:
-            print(f"Nome: {pessoa[1]}")
-            print(f"CPF: {pessoa[3]}")
-            print(f"Telefone: {pessoa[5]}")
 
     def atualizar_dados():
         id_pessoa = input("Qual o seu id? ")
@@ -111,16 +102,35 @@ def main():
         cursor.execute(cmd_update, tuple(valores))
         conexao.commit()
         print("Atualizado!")
-
+    
+    def buscar_por_id(id):
+        try:
+            cursor.execute("SELECT * FROM pessoa pe join paciente pa on pa.id_pessoa = pe.id_pessoa join profissional pr on pr.id_pessoa = pr.id_pessoa WHERE pe.id_pessoa = %s", (id,))
+            pessoa = cursor.fetchone()
+            
+            if pessoa:
+                print("^-^")
+                return True
+            else:
+                print(f"Não existe registros com o id: {id}")
+                return False
+        except Exception as e:
+            conexao.rollback()
+            print(f"{e}")
+    
     def delete(id):
-        cmd_delete = f"DELETE FROM paciente WHERE id_paciente= '{id}'"
-        cursor.execute(cmd_delete)
-        conexao.commit()
-        print('Registro deletado com sucesso')
-
-    # insert("1045", "joaozinho", "rua do joao", "0123414151", "123445585", "199293003")
-    # criar_paciente("103", "1045", "O+", "alergia a gatos", "","M")
-    buscar_por_cpf("0123414151")
+        
+        if buscar_por_id(id):
+            cursor.execute("DELETE FROM pessoa WHERE id_pessoa = %s", (id,))
+            conexao.commit()
+            print('Registro deletado com sucesso')
+        
+    
+        
+    # criar_pessoa("1", "Patricio", "Rua do 15", "3333444-33", "22003", "123456")
+    # criar_paciente('1', "O+", "gripe suína", "peste bulbonica em 1864", "M")
+    # criar_profissional("1", "Clinico Geral, Oftalmologista", "00000000")
+    # buscar_por_id(1)
     seleciona()
     encerra_conexao(conexao)
 
